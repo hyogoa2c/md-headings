@@ -20,16 +20,16 @@ function M.strip_existing_numbers(content)
     return ""
   end
 
-  -- Remove leading numbering patterns using a single comprehensive regex
-  -- Matches: optional whitespace + hierarchical numbers (1.2.3. or 1.2.3) or 1) format) + whitespace
-  -- Pattern: one or more groups of (digits followed by . or )) followed by optional final separator and space
-  local cleaned = content:gsub("^%s*[%d%.%)]+%s+", function(match)
-    -- Only remove if it looks like a hierarchical number (contains digits)
-    if match:match("%d") then
-      return ""
-    end
-    return match
-  end)
+  -- Match entire hierarchical number sequence at start
+  -- Pattern: optional space + leading digit + (digits/dots/parens) + space
+  -- This matches: "1.2.3 ", "1) ", "2.2.3) ", etc., but avoids stripping non-digit sequences like "..." or ")"
+  local cleaned = content:gsub("^%s*%d[%d%.%)]*%s+", "")
+
+  -- If nothing was removed, try without trailing space requirement
+  -- This handles cases where number ends the string
+  if cleaned == content then
+    cleaned = content:gsub("^%s*%d[%d%.%)]*", "")
+  end
 
   -- Trim any remaining leading/trailing whitespace
   cleaned = cleaned:match("^%s*(.-)%s*$") or ""
@@ -49,14 +49,20 @@ function M.detect_heading(line, line_num, lines)
     return nil
   end
 
-  -- Match ATX-style headings: ^(#{1,6})\s+(.+)$
-  local hashes, content = line:match("^(#{1,6})%s+(.+)$")
+  -- Match ATX-style headings: ^(#+)\s+(.+)$
+  -- Note: Lua patterns don't support {n,m} syntax, so we use + and check length
+  local hashes, content = line:match("^(#+)%s+(.+)$")
 
   if not hashes or not content then
     return nil
   end
 
   local level = #hashes
+
+  -- Validate heading level upper bound (1-6)
+  if level > 6 then
+    return nil
+  end
   local stripped_content = M.strip_existing_numbers(content)
 
   -- Skip empty headings (headings with no content after stripping)
