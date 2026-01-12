@@ -6,7 +6,7 @@ local M = {}
 -- Check if buffer is a markdown file
 local function is_markdown_buffer(bufnr)
   bufnr = bufnr or vim.api.nvim_get_current_buf()
-  local filetype = vim.api.nvim_buf_get_option(bufnr, "filetype")
+  local filetype = vim.api.nvim_get_option_value("filetype", { buf = bufnr })
   return filetype == "markdown" or filetype == "md"
 end
 
@@ -109,44 +109,18 @@ function M.setup(opts)
 
   local user_config = config.get()
 
-  -- Register user commands
-  vim.api.nvim_create_user_command("MarkdownNumberHeadings", function()
-    M.number_headings()
-  end, {
-    desc = "Number markdown headings hierarchically",
-  })
-
-  vim.api.nvim_create_user_command("MarkdownRemoveNumbers", function()
-    M.remove_numbers()
-  end, {
-    desc = "Remove numbers from markdown headings",
-  })
-
-  vim.api.nvim_create_user_command("MarkdownToggleNumbers", function()
-    M.toggle()
-  end, {
-    desc = "Toggle md-headings plugin on/off",
-  })
-
-  vim.api.nvim_create_user_command("MarkdownTOC", function()
-    M.create_toc()
-  end, {
-    desc = "Create table of contents at cursor",
-  })
-
-  vim.api.nvim_create_user_command("MarkdownTOCNumbered", function()
-    M.create_toc_numbered()
-  end, {
-    desc = "Create numbered table of contents at cursor",
-  })
+  -- Note: Commands are registered in plugin/md-headings.lua to avoid duplication
+  -- This setup function only handles configuration and autocmds
 
   -- Setup auto-numbering on save if enabled
   if user_config.auto_number_on_save then
     vim.api.nvim_create_autocmd("BufWritePre", {
       pattern = { "*.md", "*.markdown" },
-      callback = function()
-        if user_config.enabled and is_markdown_buffer() then
-          M.number_headings()
+      callback = function(args)
+        -- Use buffer from autocmd args for correct context
+        local bufnr = args.buf
+        if user_config.enabled and is_markdown_buffer(bufnr) then
+          M.number_headings(bufnr)
         end
       end,
       desc = "Auto-number markdown headings on save",

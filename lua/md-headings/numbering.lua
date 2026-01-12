@@ -88,7 +88,7 @@ function M.apply_to_buffer(bufnr, numbered_headings)
   bufnr = bufnr or vim.api.nvim_get_current_buf()
 
   -- Check if buffer is modifiable
-  if not vim.api.nvim_buf_get_option(bufnr, "modifiable") then
+  if not vim.api.nvim_get_option_value("modifiable", { buf = bufnr }) then
     vim.notify("md-headings: Buffer is not modifiable", vim.log.levels.ERROR)
     return false
   end
@@ -126,7 +126,7 @@ function M.remove_numbers(bufnr)
   end
 
   -- Check if buffer is modifiable
-  if not vim.api.nvim_buf_get_option(bufnr, "modifiable") then
+  if not vim.api.nvim_get_option_value("modifiable", { buf = bufnr }) then
     vim.notify("md-headings: Buffer is not modifiable", vim.log.levels.ERROR)
     return false
   end
