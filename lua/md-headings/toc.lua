@@ -99,8 +99,8 @@ function M.create_toc_numbered(bufnr)
     if numbered_headings_raw[i] then
       -- Parse number from formatted line (just the number part, separator is added separately)
       local formatted = numbered_headings_raw[i].formatted_line
-      -- Match digits and dots (e.g., "1.2.3"), excluding the trailing separator
-      local number = formatted:match("^#+%s+([%d%.]+)")
+      -- Match digits and dots (e.g., "1.2.3"), ensuring the last character is a digit (exclude trailing separator)
+      local number = formatted:match("^#+%s+([%d%.]+[%d])")
       new_heading.number = number
     end
     table.insert(numbered_headings, new_heading)
