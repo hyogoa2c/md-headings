@@ -4,10 +4,9 @@ local M = {}
 -- Convert heading text to GitHub-style anchor
 -- Example: "1. Hello World!" -> "hello-world"
 local function text_to_anchor(text)
-  -- Remove numbers and separators at the start (1., 1.1., etc.)
-  local cleaned = text:gsub("^%s*%d+[%.%)]+%s*", "")
-  cleaned = cleaned:gsub("^%s*%d+[%.%)]%d+[%.%)]+%s*", "")
-  cleaned = cleaned:gsub("^%s*%d+[%.%)]%d+[%.%)]%d+[%.%)]+%s*", "")
+  -- Use parser's strip_existing_numbers for consistency
+  local parser = require("md-headings.parser")
+  local cleaned = parser.strip_existing_numbers(text)
 
   -- Convert to lowercase
   cleaned = cleaned:lower()
@@ -98,8 +97,9 @@ function M.create_toc_numbered(bufnr)
     local new_heading = vim.deepcopy(heading)
     -- Extract number from numbered_headings_raw
     if numbered_headings_raw[i] then
-      -- Parse number from formatted line
+      -- Parse number from formatted line (just the number part, separator is added separately)
       local formatted = numbered_headings_raw[i].formatted_line
+      -- Match digits and dots (e.g., "1.2.3"), excluding the trailing separator
       local number = formatted:match("^#+%s+([%d%.]+)")
       new_heading.number = number
     end
@@ -110,7 +110,7 @@ function M.create_toc_numbered(bufnr)
   local toc_config = vim.tbl_extend("force", config, { toc_use_numbers = true })
   local toc_lines = M.generate_toc(numbered_headings, toc_config)
 
-  return M.insert_toc(bufnr, toc_lines, config)
+  return M.insert_toc(bufnr, toc_lines, config, #numbered_headings)
 end
 
 -- Create TOC without numbers (plain headings)
@@ -134,15 +134,15 @@ function M.create_toc_plain(bufnr)
   local toc_config = vim.tbl_extend("force", config, { toc_use_numbers = false })
   local toc_lines = M.generate_toc(headings, toc_config)
 
-  return M.insert_toc(bufnr, toc_lines, config)
+  return M.insert_toc(bufnr, toc_lines, config, #headings)
 end
 
 -- Insert TOC at cursor position or top of file
-function M.insert_toc(bufnr, toc_lines, config)
+function M.insert_toc(bufnr, toc_lines, _, entry_count)
   bufnr = bufnr or vim.api.nvim_get_current_buf()
 
   -- Check if buffer is modifiable
-  if not vim.api.nvim_buf_get_option(bufnr, "modifiable") then
+  if not vim.api.nvim_get_option_value("modifiable", { buf = bufnr }) then
     vim.notify("md-headings: Buffer is not modifiable", vim.log.levels.ERROR)
     return false
   end
@@ -154,8 +154,10 @@ function M.insert_toc(bufnr, toc_lines, config)
   -- Insert TOC at cursor position
   vim.api.nvim_buf_set_lines(bufnr, line, line, false, toc_lines)
 
+  -- Use entry_count if provided, otherwise calculate from toc_lines
+  local count = entry_count or #toc_lines
   vim.notify(
-    string.format("md-headings: Created table of contents with %d entries", #toc_lines - 2),
+    string.format("md-headings: Created table of contents with %d %s", count, count == 1 and "entry" or "entries"),
     vim.log.levels.INFO
   )
 

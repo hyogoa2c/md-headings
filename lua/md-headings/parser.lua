@@ -20,14 +20,16 @@ function M.strip_existing_numbers(content)
     return ""
   end
 
-  -- Remove leading numbering patterns
-  -- Pattern matches: optional whitespace + digits + (. or )) + more digits/separators
-  local cleaned = content:gsub("^%s*%d+[%.%)]+%s*", "")
-  cleaned = cleaned:gsub("^%s*%d+[%.%)]%d+[%.%)]+%s*", "")
-  cleaned = cleaned:gsub("^%s*%d+[%.%)]%d+[%.%)]%d+[%.%)]+%s*", "")
-  cleaned = cleaned:gsub("^%s*%d+[%.%)]%d+[%.%)]%d+[%.%)]%d+[%.%)]+%s*", "")
-  cleaned = cleaned:gsub("^%s*%d+[%.%)]%d+[%.%)]%d+[%.%)]%d+[%.%)]%d+[%.%)]+%s*", "")
-  cleaned = cleaned:gsub("^%s*%d+[%.%)]%d+[%.%)]%d+[%.%)]%d+[%.%)]%d+[%.%)]%d+[%.%)]+%s*", "")
+  -- Remove leading numbering patterns using a single comprehensive regex
+  -- Matches: optional whitespace + hierarchical numbers (1.2.3. or 1.2.3) or 1) format) + whitespace
+  -- Pattern: one or more groups of (digits followed by . or )) followed by optional final separator and space
+  local cleaned = content:gsub("^%s*[%d%.%)]+%s+", function(match)
+    -- Only remove if it looks like a hierarchical number (contains digits)
+    if match:match("%d") then
+      return ""
+    end
+    return match
+  end)
 
   -- Trim any remaining leading/trailing whitespace
   cleaned = cleaned:match("^%s*(.-)%s*$") or ""
