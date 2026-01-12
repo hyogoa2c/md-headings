@@ -59,8 +59,8 @@ function M.detect_heading(line, line_num, lines)
 
   local level = #hashes
 
-  -- Validate heading level (1-6)
-  if level < 1 or level > 6 then
+  -- Validate heading level upper bound (1-6)
+  if level > 6 then
     return nil
   end
   local stripped_content = M.strip_existing_numbers(content)
