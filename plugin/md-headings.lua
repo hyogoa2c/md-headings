@@ -30,3 +30,15 @@ vim.api.nvim_create_user_command("MarkdownToggleNumbers", function()
 end, {
   desc = "Toggle md-headings plugin on/off",
 })
+
+vim.api.nvim_create_user_command("MarkdownTOC", function()
+  md_headings.create_toc()
+end, {
+  desc = "Create table of contents at cursor",
+})
+
+vim.api.nvim_create_user_command("MarkdownTOCNumbered", function()
+  md_headings.create_toc_numbered()
+end, {
+  desc = "Create numbered table of contents at cursor",
+})

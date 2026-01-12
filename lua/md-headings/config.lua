@@ -21,6 +21,16 @@ local defaults = {
 
   -- Skip headings that match certain patterns
   skip_patterns = {},
+
+  -- Table of Contents settings
+  -- Add "Table of Contents" header to TOC
+  toc_add_header = true,
+
+  -- Indentation size for TOC entries (spaces per level)
+  toc_indent_size = 2,
+
+  -- Use numbers in TOC (set by commands, not user config)
+  toc_use_numbers = false,
 }
 
 -- Current configuration

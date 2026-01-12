@@ -71,6 +71,34 @@ function M.toggle()
   vim.notify("md-headings: Plugin " .. status, vim.log.levels.INFO)
 end
 
+-- Create table of contents at cursor position (plain, no numbers)
+function M.create_toc(bufnr)
+  bufnr = bufnr or vim.api.nvim_get_current_buf()
+
+  -- Check if it's a markdown buffer
+  if not is_markdown_buffer(bufnr) then
+    vim.notify("md-headings: Not a markdown buffer", vim.log.levels.WARN)
+    return false
+  end
+
+  local toc = require("md-headings.toc")
+  return toc.create_toc_plain(bufnr)
+end
+
+-- Create table of contents with numbers at cursor position
+function M.create_toc_numbered(bufnr)
+  bufnr = bufnr or vim.api.nvim_get_current_buf()
+
+  -- Check if it's a markdown buffer
+  if not is_markdown_buffer(bufnr) then
+    vim.notify("md-headings: Not a markdown buffer", vim.log.levels.WARN)
+    return false
+  end
+
+  local toc = require("md-headings.toc")
+  return toc.create_toc_numbered(bufnr)
+end
+
 -- Setup function to initialize the plugin
 function M.setup(opts)
   opts = opts or {}
@@ -98,6 +126,18 @@ function M.setup(opts)
     M.toggle()
   end, {
     desc = "Toggle md-headings plugin on/off",
+  })
+
+  vim.api.nvim_create_user_command("MarkdownTOC", function()
+    M.create_toc()
+  end, {
+    desc = "Create table of contents at cursor",
+  })
+
+  vim.api.nvim_create_user_command("MarkdownTOCNumbered", function()
+    M.create_toc_numbered()
+  end, {
+    desc = "Create numbered table of contents at cursor",
   })
 
   -- Setup auto-numbering on save if enabled

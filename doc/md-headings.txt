@@ -83,6 +83,30 @@ number them hierarchically based on their level.
     Toggle the md-headings plugin on/off.
     When disabled, commands will not execute.
 
+                                                   *:MarkdownTOC*
+:MarkdownTOC
+    Create a table of contents at the current cursor position.
+    Generates a plain TOC without numbers, using markdown links to headings.
+
+    Example output:
+        ## Table of Contents
+
+        - [Introduction](#introduction)
+          - [Background](#background)
+        - [Main Content](#main-content)
+
+                                                   *:MarkdownTOCNumbered*
+:MarkdownTOCNumbered
+    Create a numbered table of contents at the current cursor position.
+    Generates a TOC with hierarchical numbers matching the document headings.
+
+    Example output:
+        ## Table of Contents
+
+        - [1. Introduction](#introduction)
+          - [1.1. Background](#background)
+        - [2. Main Content](#main-content)
+
 ==============================================================================
 5. CONFIGURATION                                        *md-headings-config*
 
@@ -95,6 +119,8 @@ Setup the plugin with custom configuration:
       start_level = 1,
       auto_number_on_save = false,
       skip_patterns = {},
+      toc_add_header = true,
+      toc_indent_size = 2,
     })
 <
 
@@ -157,6 +183,24 @@ skip_patterns                              *md-headings-config-skip-patterns*
         skip_patterns = {"^TOC", "^Table of Contents"}
 <
 
+toc_add_header                            *md-headings-config-toc-add-header*
+    Type: boolean
+    Default: `true`
+
+    Add "## Table of Contents" header when generating TOC.
+    Set to `false` to generate only the list without a header.
+
+toc_indent_size                          *md-headings-config-toc-indent-size*
+    Type: number
+    Default: `2`
+
+    Number of spaces per indentation level in table of contents.
+    Controls how nested headings are indented.
+
+    Example:
+        2 -> Two spaces per level (default)
+        4 -> Four spaces per level
+
 ==============================================================================
 6. FUNCTIONS                                        *md-headings-functions*
 
@@ -198,6 +242,28 @@ require("md-headings").toggle()                 *md-headings.toggle()*
     Toggle the plugin on/off.
 
     When toggled off, the plugin's commands will not execute.
+
+require("md-headings").create_toc({bufnr})     *md-headings.create_toc()*
+    Create a plain table of contents at cursor position.
+
+    Parameters:
+        {bufnr} (number, optional) Buffer number (defaults to current)
+
+    Returns:
+        (boolean) True if successful, false otherwise
+
+    Generates TOC without numbers, using markdown links.
+
+require("md-headings").create_toc_numbered({bufnr})  *md-headings.create_toc_numbered()*
+    Create a numbered table of contents at cursor position.
+
+    Parameters:
+        {bufnr} (number, optional) Buffer number (defaults to current)
+
+    Returns:
+        (boolean) True if successful, false otherwise
+
+    Generates TOC with hierarchical numbers matching document headings.
 
 ==============================================================================
 7. EXAMPLES                                          *md-headings-examples*
