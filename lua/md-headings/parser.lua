@@ -21,14 +21,14 @@ function M.strip_existing_numbers(content)
   end
 
   -- Match entire hierarchical number sequence at start
-  -- Pattern: optional space + (one or more of: digits/dots/parens) + space
-  -- This matches: "1.2.3 ", "1) ", "2.2.3) ", etc.
-  local cleaned = content:gsub("^%s*[%d%.%)]+%s+", "")
+  -- Pattern: optional space + leading digit + (digits/dots/parens) + space
+  -- This matches: "1.2.3 ", "1) ", "2.2.3) ", etc., but avoids stripping non-digit sequences like "..." or ")"
+  local cleaned = content:gsub("^%s*%d[%d%.%)]*%s+", "")
 
   -- If nothing was removed, try without trailing space requirement
   -- This handles cases where number ends the string
   if cleaned == content then
-    cleaned = content:gsub("^%s*[%d%.%)]+", "")
+    cleaned = content:gsub("^%s*%d[%d%.%)]*", "")
   end
 
   -- Trim any remaining leading/trailing whitespace
