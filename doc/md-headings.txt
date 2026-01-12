@@ -1,0 +1,277 @@
+*md-headings.txt*  Hierarchical markdown heading numbering for Neovim
+
+==============================================================================
+CONTENTS                                              *md-headings-contents*
+
+    1. Introduction ........................... |md-headings-intro|
+    2. Installation ........................... |md-headings-installation|
+    3. Usage .................................. |md-headings-usage|
+    4. Commands ............................... |md-headings-commands|
+    5. Configuration .......................... |md-headings-config|
+    6. Functions .............................. |md-headings-functions|
+    7. Examples ............................... |md-headings-examples|
+    8. License ................................ |md-headings-license|
+
+==============================================================================
+1. INTRODUCTION                                          *md-headings-intro*
+
+md-headings.nvim is a modern Neovim plugin for hierarchical markdown
+heading numbering. It provides commands to automatically number markdown
+headings in a hierarchical format (1., 1.1, 1.1.1, etc.).
+
+Features:
+  • Hierarchical numbering (1., 1.1, 1.1.1)
+  • Automatically removes existing numbers before renumbering
+  • Configurable separator and formatting options
+  • Respects markdown code blocks
+  • Written in pure Lua for modern Neovim
+
+==============================================================================
+2. INSTALLATION                                  *md-headings-installation*
+
+Using lazy.nvim: >lua
+    {
+      "hyogoa2c/md-headings",
+      ft = "markdown",
+      config = function()
+        require("md-headings").setup()
+      end,
+    }
+<
+
+Using packer.nvim: >lua
+    use {
+      "hyogoa2c/md-headings",
+      ft = "markdown",
+      config = function()
+        require("md-headings").setup()
+      end
+    }
+<
+
+==============================================================================
+3. USAGE                                                  *md-headings-usage*
+
+Basic usage:
+1. Open a markdown file
+2. Run |:MarkdownNumberHeadings| to number all headings
+3. Run |:MarkdownRemoveNumbers| to remove all numbers
+
+The plugin will automatically detect ATX-style headings (# ## ###) and
+number them hierarchically based on their level.
+
+==============================================================================
+4. COMMANDS                                            *md-headings-commands*
+
+                                                   *:MarkdownNumberHeadings*
+:MarkdownNumberHeadings
+    Number all headings in the current buffer hierarchically.
+
+    Example output:
+        # 1. Introduction
+        ## 1.1. Background
+        ### 1.1.1. Details
+        # 2. Main Content
+
+                                                   *:MarkdownRemoveNumbers*
+:MarkdownRemoveNumbers
+    Remove all numbers from headings in the current buffer.
+    This strips existing number prefixes while preserving heading content.
+
+                                                   *:MarkdownToggleNumbers*
+:MarkdownToggleNumbers
+    Toggle the md-headings plugin on/off.
+    When disabled, commands will not execute.
+
+==============================================================================
+5. CONFIGURATION                                        *md-headings-config*
+
+Setup the plugin with custom configuration:
+>lua
+    require("md-headings").setup({
+      enabled = true,
+      separator = ".",
+      add_space = true,
+      start_level = 1,
+      auto_number_on_save = false,
+      skip_patterns = {},
+    })
+<
+
+Configuration options:
+
+enabled                                          *md-headings-config-enabled*
+    Type: boolean
+    Default: `true`
+
+    Enable or disable the plugin. When disabled, commands will show
+    a warning and not execute.
+
+separator                                      *md-headings-config-separator*
+    Type: string
+    Default: `"."`
+
+    Number separator to use. Valid values: "." or ")"
+
+    Examples:
+        "." -> # 1. Heading, ## 1.1. Subheading
+        ")" -> # 1) Heading, ## 1.1) Subheading
+
+add_space                                      *md-headings-config-add-space*
+    Type: boolean
+    Default: `true`
+
+    Add a space between the number and heading text.
+
+    Examples:
+        true  -> # 1. Heading
+        false -> # 1.Heading
+
+start_level                                  *md-headings-config-start-level*
+    Type: number
+    Default: `1`
+    Range: 1-6
+
+    Start numbering from this heading level. Set to 2 to skip H1 headings.
+
+    Examples:
+        1 -> Number all headings (H1-H6)
+        2 -> Skip H1, number H2-H6
+
+auto_number_on_save              *md-headings-config-auto-number-on-save*
+    Type: boolean
+    Default: `false`
+
+    Automatically renumber headings whenever the file is saved.
+    Set to `true` to enable automatic renumbering on save.
+
+skip_patterns                              *md-headings-config-skip-patterns*
+    Type: table
+    Default: `{}`
+
+    List of Lua patterns to skip when numbering. Headings matching any
+    pattern will not be numbered.
+
+    Example:
+>lua
+        skip_patterns = {"^TOC", "^Table of Contents"}
+<
+
+==============================================================================
+6. FUNCTIONS                                        *md-headings-functions*
+
+The following Lua functions are available via the main module:
+
+require("md-headings").setup({opts})           *md-headings.setup()*
+    Initialize the plugin with custom configuration.
+
+    Parameters:
+        {opts} (table) Configuration options
+
+    Example:
+>lua
+        require("md-headings").setup({
+          separator = ")",
+          start_level = 2,
+        })
+<
+
+require("md-headings").number_headings({bufnr})  *md-headings.number_headings()*
+    Number all headings in the specified buffer.
+
+    Parameters:
+        {bufnr} (number, optional) Buffer number (defaults to current)
+
+    Returns:
+        (boolean) True if successful, false otherwise
+
+require("md-headings").remove_numbers({bufnr})  *md-headings.remove_numbers()*
+    Remove numbers from all headings in the specified buffer.
+
+    Parameters:
+        {bufnr} (number, optional) Buffer number (defaults to current)
+
+    Returns:
+        (boolean) True if successful, false otherwise
+
+require("md-headings").toggle()                 *md-headings.toggle()*
+    Toggle the plugin on/off.
+
+    When toggled off, the plugin's commands will not execute.
+
+==============================================================================
+7. EXAMPLES                                          *md-headings-examples*
+
+Example 1: Basic usage ~
+>vim
+    " Open a markdown file
+    :edit document.md
+
+    " Number all headings
+    :MarkdownNumberHeadings
+<
+
+Example 2: Custom configuration ~
+>lua
+    require("md-headings").setup({
+      separator = ")",           -- Use parentheses
+      start_level = 2,           -- Skip H1 headings
+    })
+<
+
+Example 3: Keybindings ~
+>lua
+    -- In your Neovim configuration
+    vim.keymap.set("n", "<leader>mn", ":MarkdownNumberHeadings<CR>",
+      { desc = "Number markdown headings" })
+    vim.keymap.set("n", "<leader>mr", ":MarkdownRemoveNumbers<CR>",
+      { desc = "Remove heading numbers" })
+<
+
+Example 4: Before and after ~
+
+Before:
+>markdown
+    # Introduction
+    ## Background
+    ### Some Detail
+    # Main Content
+    ## Section A
+<
+
+After running :MarkdownNumberHeadings:
+>markdown
+    # 1. Introduction
+    ## 1.1. Background
+    ### 1.1.1. Some Detail
+    # 2. Main Content
+    ## 2.1. Section A
+<
+
+==============================================================================
+8. LICENSE                                            *md-headings-license*
+
+MIT License
+
+Copyright (c) 2026 md-headings.nvim contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+==============================================================================
+vim:tw=78:ts=8:ft=help:norl:
