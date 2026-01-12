@@ -20,16 +20,27 @@ function M.strip_existing_numbers(content)
     return ""
   end
 
-  -- Remove leading numbering patterns using a single comprehensive regex
-  -- Matches: optional whitespace + hierarchical numbers (1.2.3. or 1.2.3) or 1) format) + whitespace
-  -- Pattern: one or more groups of (digits followed by . or )) followed by optional final separator and space
-  local cleaned = content:gsub("^%s*[%d%.%)]+%s+", function(match)
-    -- Only remove if it looks like a hierarchical number (contains digits)
-    if match:match("%d") then
-      return ""
-    end
-    return match
-  end)
+  -- Remove leading numbering patterns with proper structure validation
+  -- Must match: digits followed by separator (. or )), optionally repeated
+  -- Valid: "1. ", "1.2. ", "1.2.3. ", "1) ", "1.2) ", "1.2 " (no final separator)
+  -- Invalid: ".1 ", ")1 ", "1.. ", "1)) "
+  
+  -- Repeatedly remove digit+separator patterns from the start
+  -- This ensures proper structure by requiring each segment to be digit(s) + separator
+  local cleaned = content
+  local prev
+  repeat
+    prev = cleaned
+    -- Match and remove: optional whitespace + digits + separator (. or ))
+    cleaned = cleaned:gsub("^%s*%d+[%.%)]", "")
+  until cleaned == prev
+  
+  -- After removing all digit+separator pairs, check if we have remaining digits
+  -- (case like "1.2 Text" where the final "2" has no separator)
+  cleaned = cleaned:gsub("^%s*%d+%s+", "")
+  
+  -- Remove any remaining leading whitespace
+  cleaned = cleaned:gsub("^%s+", "")
 
   -- Trim any remaining leading/trailing whitespace
   cleaned = cleaned:match("^%s*(.-)%s*$") or ""
