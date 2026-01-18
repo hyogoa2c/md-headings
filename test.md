@@ -37,6 +37,8 @@ A subsection under B.
 
 Another subsection with different number format.
 
+## 2025-12-10 Section with dates
+
 # Conclusion
 
 Final thoughts.
