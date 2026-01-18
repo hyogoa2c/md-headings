@@ -20,15 +20,22 @@ function M.strip_existing_numbers(content)
 		return ""
 	end
 
-	-- Match entire hierarchical number sequence at start
-	-- Pattern: optional space + leading digit + (digits/dots/parens) + space
-	-- This matches: "1.2.3 ", "1) ", "2.2.3) ", etc., but avoids stripping non-digit sequences like "..." or ")"
-	local cleaned = content:gsub("^%s*%d[%d%.%)]*%s+", "")
+	-- Only strip if the heading starts with a hierarchical number followed by a period, right parenthesis, or nothing (not a dash, space, etc.)
+	-- Examples to strip: "1. ", "1.2.3 ", "1) ", "2.2.3) "
+	-- Examples NOT to strip: "2025-12-10", "1 2 3 Title"
+	local cleaned = content:gsub("^%s*(%d+([%.%d]*)%)?)([%.%)%s])", function(num, _, sep)
+		-- Only strip if separator is period, right parenthesis, or space
+		if sep == "." or sep == ")" or sep == " " then
+			return ""
+		end
+		return content
+	end)
 
 	-- If nothing was removed, try without trailing space requirement
-	-- This handles cases where number ends the string
 	if cleaned == content then
-		cleaned = content:gsub("^%s*%d[%d%.%)]*", "")
+		cleaned = content:gsub("^%s*(%d+([%.%d]*)%)?)$", function(num)
+			return ""
+		end)
 	end
 
 	-- Trim any remaining leading/trailing whitespace
