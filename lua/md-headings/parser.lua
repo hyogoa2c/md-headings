@@ -20,22 +20,19 @@ function M.strip_existing_numbers(content)
 		return ""
 	end
 
-	-- Only strip if the heading starts with a hierarchical number followed by a period, right parenthesis, or nothing (not a dash, space, etc.)
-	-- Examples to strip: "1. ", "1.2.3 ", "1) ", "2.2.3) "
-	-- Examples NOT to strip: "2025-12-10", "1 2 3 Title"
-	local cleaned = content:gsub("^%s*(%d+([%.%d]*)%)?)([%.%)%s])", function(num, _, sep)
-		-- Only strip if separator is period, right parenthesis, or space
-		if sep == "." or sep == ")" or sep == " " then
-			return ""
-		end
-		return content
-	end)
+	-- Only strip if the heading starts with a hierarchical number followed by a period or right parenthesis.
+	-- Examples to strip: "1. Title", "1.2.3 Title", "1) Title", "2.2.3) Title"
+	-- Examples NOT to strip: "2025-12-10 Section", "1 2 3 Title"
+	-- Pattern explanation:
+	--   ^%s*           : optional leading whitespace
+	--   %d[%d%.%)]*    : a digit followed by digits, dots, or right parens
+	--   [%.%)]        : must end the sequence with a dot or right paren
+	--   %s*           : consume following whitespace
+	local cleaned = content:gsub("^%s*%d[%d%.%)]*[%.%)]%s*", "")
 
-	-- If nothing was removed, try without trailing space requirement
+	-- If nothing was removed, handle headings that are just a hierarchical number (e.g., "1.2.3")
 	if cleaned == content then
-		cleaned = content:gsub("^%s*(%d+([%.%d]*)%)?)$", function(num)
-			return ""
-		end)
+		cleaned = content:gsub("^%s*%d[%d%.%)]*[%.%)]%s*$", "")
 	end
 
 	-- Trim any remaining leading/trailing whitespace
