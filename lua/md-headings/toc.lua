@@ -138,7 +138,7 @@ function M.create_toc_plain(bufnr)
 end
 
 -- Insert TOC at cursor position or top of file
-function M.insert_toc(bufnr, toc_lines, _, entry_count)
+function M.insert_toc(bufnr, toc_lines, config, entry_count)
   bufnr = bufnr or vim.api.nvim_get_current_buf()
 
   -- Check if buffer is modifiable
@@ -154,8 +154,15 @@ function M.insert_toc(bufnr, toc_lines, _, entry_count)
   -- Insert TOC at cursor position
   vim.api.nvim_buf_set_lines(bufnr, line, line, false, toc_lines)
 
-  -- Use entry_count if provided, otherwise calculate from toc_lines
-  local count = entry_count or #toc_lines
+  -- Use entry_count if provided, otherwise calculate accurately from toc_lines
+  -- by subtracting formatting lines (header + blank if enabled, plus trailing blank)
+  local count = entry_count
+  if not count and config then
+    local header_lines = (config.toc_add_header ~= false) and 2 or 0
+    count = #toc_lines - header_lines - 1 -- subtract header lines and trailing blank
+  elseif not count then
+    count = #toc_lines -- fallback if config also not provided
+  end
   vim.notify(
     string.format("md-headings: Created table of contents with %d %s", count, count == 1 and "entry" or "entries"),
     vim.log.levels.INFO
